@@ -7,27 +7,24 @@
 #include "Operations.h"
 
 NosferatuEmulator::NosferatuEmulator() : PC(regs[15]) {
-    memory[MemSize - 10] = 0xFF;
-    memory[MemSize - 15] = 0xFFFF;
+    memory[0xEEFF] = 0xEEFF;
 }
 
 const u16 *NosferatuEmulator::getMemory() const {
     return memory;
 }
 
-int NosferatuEmulator::step() {
+void NosferatuEmulator::step() {
     if (PC >= CodeSize) {
         // todo temp
-        return 1;
+        return;
     }
 
     const auto &i = codeMemory[PC];
-    auto cycleDuration = Operations::OpMap[i.op](i, this);
+    Operations::OpMap[i.op](i, this);
 
     ++ PC;
-    this->cycles += cycleDuration;
-
-    return cycleDuration;
+    ++ this->cycles;
 }
 
 u16 NosferatuEmulator::getRegUnsigned(u4 address) const {

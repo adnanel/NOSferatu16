@@ -21,41 +21,34 @@ OperationImplementation Operations::OpMap[16] = {
         Operations::op0xC,
         Operations::op0xD,
         Operations::op0xE,
-        Operations::op0xF
-};
+        Operations::op0xF};
 
-u8 Operations::op0x0(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x0(const Instruction &instruction, NosferatuEmulator *emu) {
     // todo provjeriti sa profesorom, ignorise se R1?
     emu->setRegUnsigned(instruction.dest, emu->getMemoryValueUnsigned(emu->getRegUnsigned(instruction.opB)));
-    return 1;
 }
 
-u8 Operations::op0x1(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x1(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) + emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x2(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x2(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) - emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x3(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x3(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) & emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x4(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x4(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) | emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x5(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x5(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) ^ emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x6(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x6(const Instruction &instruction, NosferatuEmulator *emu) {
     u16 r3 = emu->getRegUnsigned(instruction.opB);
     u16 r2 = emu->getRegUnsigned(instruction.opA);
 
@@ -79,77 +72,58 @@ u8 Operations::op0x6(const Instruction &instruction, NosferatuEmulator *emu) {
             // todo
             break;
     }
-
-    return 1;
 }
 
-u8 Operations::op0x7(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x7(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA) * emu->getRegUnsigned(instruction.opB));
-    return 1;
 }
 
-u8 Operations::op0x8(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x8(const Instruction &instruction, NosferatuEmulator *emu) {
     auto val = emu->getRegUnsigned(instruction.opA);
     emu->setMemoryValueUnsigned(emu->getRegUnsigned(instruction.opB), val);
     emu->setRegUnsigned(instruction.dest, val);
-
-    return 1;
 }
 
-u8 Operations::op0x9(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0x9(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = instruction.opA;
     auto b = instruction.opB;
     u16 result = ((a & Mask4) << 4) | (b & Mask4);
 
     emu->setRegUnsigned(instruction.dest, result);
-
-    return 1;
 }
 
-u8 Operations::op0xA(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xA(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = emu->getRegUnsigned(instruction.opA);
     auto b = emu->getRegUnsigned(instruction.opB);
     emu->setRegUnsigned(instruction.dest, a > b ? 1 : 0);
-
-    return 1;
 }
 
-u8 Operations::op0xB(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xB(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = emu->getRegSigned(instruction.opA);
     auto b = emu->getRegSigned(instruction.opB);
     emu->setRegUnsigned(instruction.dest, a > b ? 1 : 0);
-
-    return 1;
 }
 
-u8 Operations::op0xC(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xC(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = emu->getRegUnsigned(instruction.opA);
     auto b = emu->getRegUnsigned(instruction.opB);
     emu->setRegUnsigned(instruction.dest, a < b ? 1 : 0);
-
-    return 1;
 }
 
-u8 Operations::op0xD(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xD(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = emu->getRegSigned(instruction.opA);
     auto b = emu->getRegSigned(instruction.opB);
     emu->setRegUnsigned(instruction.dest, a < b ? 1 : 0);
-
-    return 1;
 }
 
-u8 Operations::op0xE(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xE(const Instruction &instruction, NosferatuEmulator *emu) {
     auto a = emu->getRegUnsigned(instruction.opA);
     auto b = emu->getRegUnsigned(instruction.opB);
     emu->setRegUnsigned(instruction.dest, a == b ? 1 : 0);
-
-    return 1;
 }
 
-u8 Operations::op0xF(const Instruction &instruction, NosferatuEmulator *emu) {
+void Operations::op0xF(const Instruction &instruction, NosferatuEmulator *emu) {
     emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA));
     emu->setPC(emu->getRegUnsigned(instruction.opB));
-
-    return 1;
 }
 

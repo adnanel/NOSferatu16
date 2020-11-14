@@ -20,14 +20,19 @@ constexpr int ScreenHeight = 320;
 constexpr int MemoryPosX = 325;
 constexpr int MemoryPosY = 19;
 
+constexpr int MemoryZoomWidth = 4;
+constexpr int MemoryZoomHeight = 16;
+
+constexpr int MemoryZoomHalfWidth = MemoryZoomWidth / 2;
+constexpr int MemoryZoomHalfHeight = MemoryZoomHeight / 2;
+
 int focusedMemoryArea = -1;
 
 long long instructions = 0;
-constexpr long targetFrequency = 4 * 1000000; // [Hz]
+constexpr unsigned long targetFrequency = 4 * 1000000; // [Hz]
 
 long targetNanosPerFrame = (1.0 / 15) * 1000000000;
-long targetNanosPerEmuTick = (1.0 / targetFrequency) * 1000000000;
-FrequencyCalculator frequencyCalculator;
+FrequencyCalculator frequencyCalculator(targetFrequency);
 
 FC_Font* fontCache[150] = {0};
 
@@ -82,8 +87,8 @@ inline void DrawMask(SDL_Renderer *renderer) {
 
 
 std::string hex2cache[0x1FF] = {};
-std::string hex4cache[0x1FF] = {};
-std::string hex1cache[0x1FF] = {};
+std::string hex4cache[0x1FFFF] = {};
+std::string hex1cache[0x1F] = {};
 
 inline std::string& toHex(int num) {
     char str[32];
@@ -132,8 +137,24 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
         int x = focusedMemoryArea % 256;
         int y = focusedMemoryArea / 256;
 
-        x -= 3;
-        y -= 3;
+        x -= MemoryZoomHalfWidth;
+        y -= MemoryZoomHalfHeight;
+
+        PrintString(
+                renderer,
+                22,
+                355,
+                "HI",
+                12
+        );
+        PrintString(
+                renderer,
+                45,
+                345,
+                "LO",
+                12
+        );
+        SDL_RenderDrawLine(renderer, 49, 362, 49 - 16, 362 - 16);
 
         for (int q = 70, i = 0; i < 4; ++i, q += 64) {
             PrintString(
@@ -176,6 +197,15 @@ void ClearScreen(SDL_Renderer *renderer) {
     SDL_RenderClear(renderer);
 }
 
+
+void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event) {
+    switch (event.keysym.scancode) {
+        case SDL_SCANCODE_F12:
+            frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
+            break;
+    }
+}
+
 void MousePress(SDL_Renderer *renderer, SDL_MouseButtonEvent &b) {
     if (b.button == SDL_BUTTON_LEFT) {
         //handle a left-click
@@ -187,8 +217,8 @@ void MousePress(SDL_Renderer *renderer, SDL_MouseButtonEvent &b) {
                 ) {
             auto x = (b.x - MemoryPosX) / 2;
             auto y = (b.y - MemoryPosY) / 2;
-            x = std::min(std::max(3, x), 251);
-            y = std::min(std::max(3, y), 251);
+            x = std::min(std::max(MemoryZoomHalfWidth, x), 255 - MemoryZoomHalfWidth + 1);
+            y = std::min(std::max(MemoryZoomHalfHeight, y), 255 - MemoryZoomHalfHeight + 1);
 
             focusedMemoryArea = x + (y * 256);
         } else {
@@ -222,11 +252,8 @@ void DrawRegisters(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     }
 }
 
-inline void adjustFreq(long& freq, std::string& unit) {
-    if (freq >= 1000000) {
-        freq /= 1000000;
-        unit = " [MHz]";
-    } else if (freq >= 1000) {
+inline void adjustFreq(unsigned long& freq, std::string& unit) {
+    if (freq >= 1000) {
         freq /= 1000;
         unit = " [kHz]";
     } else {
@@ -250,6 +277,7 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 
     PrintString(renderer, 855, 375, "Target frequency: " + std::to_string(freq) + unit, 13);
     PrintString(renderer, 855, 390, "Real frequency: " + std::to_string(realFreq) + realUnit, 13);
+    PrintString(renderer, 855, 425, "[F12]: Toggle frequency limiter", 13);
 }
 
 int main(int argc, char *argv[]) {
@@ -281,18 +309,13 @@ int main(int argc, char *argv[]) {
         auto now = std::chrono::high_resolution_clock::now();
 
         { // the following should be executed with the target frequency
-            long delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastEmuTickTime).count();
-            if (delta >= targetNanosPerEmuTick) {
-                // std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
-                lastEmuTickTime = now;
+            // std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
+            lastEmuTickTime = now;
 
-
-                auto cycles = emu.step();
+            if (frequencyCalculator.shouldTick()) {
+                emu.step();
                 ++instructions;
-
-
-                frequencyCalculator.addCycles(cycles);
-                frequencyCalculator.step();
+                frequencyCalculator.addCycle();
             }
         }
 
@@ -312,6 +335,9 @@ int main(int argc, char *argv[]) {
                             break;
                         case SDL_MOUSEBUTTONDOWN:
                             MousePress(renderer, e.button);
+                            break;
+                        case SDL_KEYUP:
+                            KeyPress(renderer, e.key);
                             break;
                     }
                 }

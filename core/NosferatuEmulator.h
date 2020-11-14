@@ -33,7 +33,7 @@ public:
 
     const u16* getMemory() const;
 
-    int step();
+    void step();
 
     long long int getCycles() const;
 
