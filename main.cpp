@@ -5,9 +5,12 @@
 
 #include "SDL2/SDL.h"
 #include <SDL2/SDL_ttf.h>
+#include <map>
 
 #include "Config.h"
 #include "core/NosferatuEmulator.h"
+#include "core/FrequencyCalculator.h"
+#include "util/SDL_FontCache.h"
 
 constexpr int ScreenPosX = 1;
 constexpr int ScreenPosY = 19;
@@ -20,7 +23,17 @@ constexpr int MemoryPosY = 19;
 int focusedMemoryArea = -1;
 
 long long instructions = 0;
-long long startTime;
+constexpr long targetFrequency = 4 * 1000000; // [Hz]
+
+double targetMicrosPerFrame = (1.0 / 15) * 1000000;
+double targetMicrosPerEmuTick = 0; // todo
+
+FrequencyCalculator frequencyCalculator;
+
+FC_Font* fontCache[150] = {0};
+
+std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime;
+std::chrono::time_point<std::chrono::high_resolution_clock> lastEmuTickTime;
 
 void PrintString(
         SDL_Renderer *renderer,
@@ -28,38 +41,26 @@ void PrintString(
         int y,
         std::string message,
         int ptsize = 18,
-        SDL_Color color = {255, 0, 0}
+        SDL_Color color = {255, 0, 0, 255}
 ) {
-    TTF_Font *Sans = TTF_OpenFont("font.ttf", 24); //this opens a font style and sets a size
+    FC_Font *Sans;
+    if (fontCache[ptsize]) {
+        Sans = fontCache[ptsize];
+    } else {
+        Sans = FC_CreateFont();
+        FC_LoadFont(Sans, renderer, "font.TTF", ptsize, color, TTF_STYLE_NORMAL);
+        fontCache[ptsize] = Sans;
+    }
 
-    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Sans, message.c_str(),
-                                                       color); // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
-
-    SDL_Texture *Message = SDL_CreateTextureFromSurface(renderer,
-                                                        surfaceMessage); //now you can convert it into a texture
-
-    SDL_Rect Message_rect; //create a rect
-    Message_rect.x = x;  //controls the rect's x coordinate
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = message.size() * ptsize; // controls the width of the rect
-    Message_rect.h = ptsize; // controls the height of the rect
-
-//Now since it's a texture, you have to put RenderCopy in your game loop area, the area where the whole code executes
-
-    SDL_RenderCopy(renderer, Message, NULL,
-                   &Message_rect); //you put the renderer's name first, the Message, the crop size(you can ignore this if you don't want to dabble with cropping), and the rect which is the size and coordinate of your texture
-
-//Don't forget to free your surface and texture
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(Message);
+    FC_Draw(Sans, renderer, x, y, message.c_str());
 }
 
-void DrawAreaBorder(SDL_Renderer *renderer, int x, int y, int w, int h) {
+void DrawAreaBorder(SDL_Renderer *renderer, int x, int y, int w, int h, int r = 255, int g = 0, int b = 0) {
     SDL_Rect rect = {
             x - 1, y - 1,
             w + 2, h + 2
     };
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
     SDL_RenderDrawRect(renderer, &rect);
 }
 
@@ -107,12 +108,7 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
             u16 g = rgb & 0xFF00;
             u16 b = 0;
 
-            SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
-
-            SDL_RenderDrawPoint(renderer, MemoryPosX + j * 2, MemoryPosY + i * 2);
-            SDL_RenderDrawPoint(renderer, MemoryPosX + j * 2 + 1, MemoryPosY + i * 2);
-            SDL_RenderDrawPoint(renderer, MemoryPosX + j * 2, MemoryPosY + i * 2 + 1);
-            SDL_RenderDrawPoint(renderer, MemoryPosX + j * 2 + 1, MemoryPosY + i * 2 + 1);
+            DrawAreaBorder(renderer, MemoryPosX + j * 2 + 1, MemoryPosY + i * 2 + 1, 0, 0, r, g, b);
 
             k++;
         }
@@ -120,10 +116,6 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 
     if (focusedMemoryArea >= 0) {
         DrawAreaBorder(renderer, 49, 362, 258, 258);
-        SDL_Color colors[] = {
-                {255, 0,   0, 0},
-                {0,   255, 0, 0}
-        };
         int x = focusedMemoryArea % 256;
         int y = focusedMemoryArea / 256;
 
@@ -136,8 +128,7 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
                     q,
                     345,
                     toHex(x + i),
-                    12,
-                    colors[i % 2]
+                    12
             );
         }
         for (int q = 373, i = 0; i < 8; ++i, q += 32) {
@@ -146,8 +137,7 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
                     22,
                     q,
                     toHex(y + i),
-                    12,
-                    colors[(1 + i) % 2]
+                    12
             );
         }
 
@@ -222,17 +212,41 @@ void DrawRegisters(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     }
 }
 
+inline void adjustFreq(long& freq, std::string& unit) {
+    if (freq >= 1000000) {
+        freq /= 1000000;
+        unit = " [MHz]";
+    } else if (freq >= 1000) {
+        freq /= 1000;
+        unit = " [kHz]";
+    } else {
+        unit = " [Hz]";
+    }
+}
+
 void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     PrintString(renderer, 850, 330, "Performance");
     DrawAreaBorder(renderer, 850, 350, 415, 180);
 
-    auto duration = clock() - startTime;
-    PrintString(renderer, 855, 360, "Instructions per second: " + std::to_string(instructions / duration), 12);
+    PrintString(renderer, 855, 360, "Instructions per second: ", 13);
+
+    std::string unit;
+    std::string realUnit;
+    auto freq = targetFrequency;
+    auto realFreq = frequencyCalculator.getFrequency();
+
+    adjustFreq(freq, unit);
+    adjustFreq(realFreq, realUnit);
+
+    PrintString(renderer, 855, 375, "Target frequency: " + std::to_string(freq) + unit, 13);
+    PrintString(renderer, 855, 390, "Real frequency: " + std::to_string(realFreq) + realUnit, 13);
 }
 
 int main(int argc, char *argv[]) {
     // init emu
     Config config;
+
+    lastDrawTime = std::chrono::high_resolution_clock::now();
 
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
     TTF_Init();
@@ -253,41 +267,52 @@ int main(int argc, char *argv[]) {
 
     NosferatuEmulator emu;
 
-    startTime = clock();
-
     while (!quit) {
-        //Handle events on queue
-        while (SDL_PollEvent(&e) != 0) {
-            //User requests quit
-            switch (e.type) {
-                case SDL_QUIT:
-                    quit = true;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    MousePress(renderer, e.button);
-                    break;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        { // the following should be executed with the target frequency
+            auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - lastEmuTickTime).count();
+            if (delta >= targetMicrosPerEmuTick) {
+                lastEmuTickTime = now;
+
+
+                auto cycles = emu.step();
+                ++instructions;
+
+
+                frequencyCalculator.addCycles(cycles);
+                frequencyCalculator.step();
             }
         }
 
-        try {
-            emu.step();
-            ++instructions;
-        } catch (const std::invalid_argument &ex) {
-            std::cout << std::endl;
-            std::cout << ex.what();
-            break;
-        } catch (const std::exception &ex) {
-            std::cout << std::endl << "Unhandled exception? " << ex.what();
-            break;
-        }
+        // everything below has to be executed on VSync, but should not block the main thread to compensate
+        // for the performance.
+        {
+            auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - lastDrawTime).count();
+            if (delta >= targetMicrosPerFrame) {
+                lastDrawTime = now;
 
-        ClearScreen(renderer);
-        DrawMask(renderer);
-        // todo draw screen
-        DrawMemoryMap(renderer, &emu);
-        DrawRegisters(renderer, &emu);
-        DrawPerformance(renderer, &emu);
-        SDL_RenderPresent(renderer);
+                while (SDL_PollEvent(&e) != 0) {
+                    //User requests quit
+                    switch (e.type) {
+                        case SDL_QUIT:
+                            quit = true;
+                            break;
+                        case SDL_MOUSEBUTTONDOWN:
+                            MousePress(renderer, e.button);
+                            break;
+                    }
+                }
+
+                ClearScreen(renderer);
+                DrawMask(renderer);
+                // todo draw screen
+                DrawMemoryMap(renderer, &emu);
+                DrawRegisters(renderer, &emu);
+                DrawPerformance(renderer, &emu);
+                SDL_RenderPresent(renderer);
+            }
+        }
     }
 
 

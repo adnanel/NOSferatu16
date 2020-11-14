@@ -13,16 +13,19 @@ const u16 *NosferatuEmulator::getMemory() const {
     return memory;
 }
 
-void NosferatuEmulator::step() {
+int NosferatuEmulator::step() {
     if (PC >= CodeSize) {
         // todo temp
-        return;
+        return 1;
     }
 
     const auto &i = codeMemory[PC];
-    Operations::OpMap[i.op](i, this);
+    auto cycleDuration = Operations::OpMap[i.op](i, this);
 
     ++ PC;
+    this->cycles += cycleDuration;
+
+    return cycleDuration;
 }
 
 u16 NosferatuEmulator::getRegUnsigned(u4 address) const {
@@ -90,4 +93,8 @@ void NosferatuEmulator::setMemoryValueSigned(u16 address, s16 value) {
         value |= 0x8000;
     }
     memory[address & Mask16] = value & Mask16;
+}
+
+long long int NosferatuEmulator::getCycles() const {
+    return cycles;
 }

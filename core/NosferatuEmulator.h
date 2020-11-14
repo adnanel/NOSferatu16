@@ -20,6 +20,8 @@ private:
 
     u16& PC;
 
+    long long cycles = 0;
+
     Instruction codeMemory[CodeSize] = {
             0b1001000011111111, // 0101 0101
             0b1000000000000000,
@@ -31,7 +33,9 @@ public:
 
     const u16* getMemory() const;
 
-    void step();
+    int step();
+
+    long long int getCycles() const;
 
     u16 getRegUnsigned(u4 address) const;
     void setRegUnsigned(u4 address, u16 value);
