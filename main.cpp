@@ -25,9 +25,8 @@ int focusedMemoryArea = -1;
 long long instructions = 0;
 constexpr long targetFrequency = 4 * 1000000; // [Hz]
 
-double targetMicrosPerFrame = (1.0 / 15) * 1000000;
-double targetMicrosPerEmuTick = 0; // todo
-
+double targetNanosPerFrame = (1.0 / 15) * 1000000000;
+double targetNanosPerEmuTick = (1.0 / targetFrequency) * 1000000000;
 FrequencyCalculator frequencyCalculator;
 
 FC_Font* fontCache[150] = {0};
@@ -35,11 +34,11 @@ FC_Font* fontCache[150] = {0};
 std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime;
 std::chrono::time_point<std::chrono::high_resolution_clock> lastEmuTickTime;
 
-void PrintString(
+inline void PrintString(
         SDL_Renderer *renderer,
         int x,
         int y,
-        std::string message,
+        const std::string& message,
         int ptsize = 18,
         SDL_Color color = {255, 0, 0, 255}
 ) {
@@ -55,7 +54,7 @@ void PrintString(
     FC_Draw(Sans, renderer, x, y, message.c_str());
 }
 
-void DrawAreaBorder(SDL_Renderer *renderer, int x, int y, int w, int h, int r = 255, int g = 0, int b = 0) {
+inline void DrawAreaBorder(SDL_Renderer *renderer, int x, int y, int w, int h, int r = 255, int g = 0, int b = 0) {
     SDL_Rect rect = {
             x - 1, y - 1,
             w + 2, h + 2
@@ -64,7 +63,7 @@ void DrawAreaBorder(SDL_Renderer *renderer, int x, int y, int w, int h, int r = 
     SDL_RenderDrawRect(renderer, &rect);
 }
 
-void DrawFilledRect(SDL_Renderer *renderer, int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) {
+inline void DrawFilledRect(SDL_Renderer *renderer, int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) {
     SDL_Rect rect = {
             x - 1, y - 1,
             w + 2, h + 2
@@ -73,7 +72,7 @@ void DrawFilledRect(SDL_Renderer *renderer, int x, int y, int w, int h, uint8_t 
     SDL_RenderFillRect(renderer, &rect);
 }
 
-void DrawMask(SDL_Renderer *renderer) {
+inline void DrawMask(SDL_Renderer *renderer) {
     DrawAreaBorder(renderer, ScreenPosX, ScreenPosY, ScreenWidth, ScreenHeight);
     DrawAreaBorder(renderer, MemoryPosX, MemoryPosY, 512, 512);
 
@@ -81,22 +80,36 @@ void DrawMask(SDL_Renderer *renderer) {
     PrintString(renderer, 325, 0, "Memory map");
 }
 
-std::string toHex(int num) {
+
+std::string hex2cache[0x1FF] = {};
+std::string hex4cache[0x1FF] = {};
+std::string hex1cache[0x1FF] = {};
+
+inline std::string& toHex(int num) {
     char str[32];
+    if (!hex2cache[num].empty()) {
+        return hex2cache[num];
+    }
     sprintf(str, "%02X", num);
-    return std::string(str);
+    return hex2cache[num] = std::string(str);
 }
 
-std::string toHex4(int num) {
+inline std::string& toHex4(int num) {
     char str[32];
+    if (!hex4cache[num].empty()) {
+        return hex4cache[num];
+    }
     sprintf(str, "%04X", num);
-    return std::string(str);
+    return hex4cache[num] = std::string(str);
 }
 
-std::string toHexSingle(int num) {
+inline std::string& toHexSingle(int num) {
     char str[32];
+    if (!hex1cache[num].empty()) {
+        return hex1cache[num];
+    }
     sprintf(str, "%01X", num);
-    return std::string(str);
+    return hex1cache[num] = std::string(str);
 }
 
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
@@ -271,8 +284,9 @@ int main(int argc, char *argv[]) {
         auto now = std::chrono::high_resolution_clock::now();
 
         { // the following should be executed with the target frequency
-            auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - lastEmuTickTime).count();
-            if (delta >= targetMicrosPerEmuTick) {
+            auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastEmuTickTime).count();
+            if (delta >= targetNanosPerEmuTick) {
+                // std::cout<<delta<< " micros have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
                 lastEmuTickTime = now;
 
 
@@ -288,8 +302,9 @@ int main(int argc, char *argv[]) {
         // everything below has to be executed on VSync, but should not block the main thread to compensate
         // for the performance.
         {
-            auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - lastDrawTime).count();
-            if (delta >= targetMicrosPerFrame) {
+            auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastDrawTime).count();
+            if (delta >= targetNanosPerFrame) {
+                // std::cout<<delta<< " micros have passed, refreshing screen " << targetMicrosPerFrame << std::endl;
                 lastDrawTime = now;
 
                 while (SDL_PollEvent(&e) != 0) {
