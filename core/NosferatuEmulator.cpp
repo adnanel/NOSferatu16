@@ -7,6 +7,8 @@
 #include "Operations.h"
 
 NosferatuEmulator::NosferatuEmulator() : PC(regs[15]) {
+    memory[MemSize - 10] = 0xFF;
+    memory[MemSize - 15] = 0xFFFF;
 }
 
 const u16 *NosferatuEmulator::getMemory() const {

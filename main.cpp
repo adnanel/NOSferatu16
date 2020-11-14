@@ -25,8 +25,8 @@ int focusedMemoryArea = -1;
 long long instructions = 0;
 constexpr long targetFrequency = 4 * 1000000; // [Hz]
 
-double targetNanosPerFrame = (1.0 / 15) * 1000000000;
-double targetNanosPerEmuTick = (1.0 / targetFrequency) * 1000000000;
+long targetNanosPerFrame = (1.0 / 15) * 1000000000;
+long targetNanosPerEmuTick = (1.0 / targetFrequency) * 1000000000;
 FrequencyCalculator frequencyCalculator;
 
 FC_Font* fontCache[150] = {0};
@@ -135,7 +135,7 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
         x -= 3;
         y -= 3;
 
-        for (int q = 53, i = 0; i < 8; ++i, q += 32) {
+        for (int q = 70, i = 0; i < 4; ++i, q += 64) {
             PrintString(
                     renderer,
                     q,
@@ -144,7 +144,7 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
                     12
             );
         }
-        for (int q = 373, i = 0; i < 8; ++i, q += 32) {
+        for (int q = 365, i = 0; i < 16; ++i, q += 16) {
             PrintString(
                     renderer,
                     22,
@@ -155,19 +155,16 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
         }
 
         auto mem = emu->getMemory();
-        int w = 32;
-        int h = 32;
+        int w = 64;
+        int h = 16;
 
-        for (int i = 0; i < 8; ++i) {
-            for (int j = 0; j < 8; ++j) {
+        for (int i = 0; i < 16; ++i) {
+            for (int j = 0; j < 4; ++j) {
                 auto rgb = mem[(y + i) * 256 + (x + j)];
 
-                u16 r = rgb & 0xFF;
-                u16 g = rgb & 0xFF00;
-                u16 b = 0;
+                PrintString(renderer, 50 + j * w + 5, 363 + i * h + 1, toHex4(rgb), 14);
 
-
-                DrawFilledRect(renderer, 50 + j * w + 1, 363 + i * h + 1, w - 1, h - 1, r, g, b);
+                // DrawFilledRect(renderer, 50 + j * w + 1, 363 + i * h + 1, w - 1, h - 1, r, g, b);
                 DrawAreaBorder(renderer, 50 + j * w, 363 + i * h, w, h);
             }
         }
@@ -284,9 +281,9 @@ int main(int argc, char *argv[]) {
         auto now = std::chrono::high_resolution_clock::now();
 
         { // the following should be executed with the target frequency
-            auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastEmuTickTime).count();
+            long delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastEmuTickTime).count();
             if (delta >= targetNanosPerEmuTick) {
-                std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
+                // std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
                 lastEmuTickTime = now;
 
 
