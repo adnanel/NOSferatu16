@@ -286,7 +286,7 @@ int main(int argc, char *argv[]) {
         { // the following should be executed with the target frequency
             auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastEmuTickTime).count();
             if (delta >= targetNanosPerEmuTick) {
-                // std::cout<<delta<< " micros have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
+                std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
                 lastEmuTickTime = now;
 
 
@@ -304,7 +304,7 @@ int main(int argc, char *argv[]) {
         {
             auto delta = std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastDrawTime).count();
             if (delta >= targetNanosPerFrame) {
-                // std::cout<<delta<< " micros have passed, refreshing screen " << targetMicrosPerFrame << std::endl;
+                // std::cout<<delta<< " nanos have passed, refreshing screen " << targetMicrosPerFrame << std::endl;
                 lastDrawTime = now;
 
                 while (SDL_PollEvent(&e) != 0) {
