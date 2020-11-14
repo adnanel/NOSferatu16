@@ -19,6 +19,9 @@ constexpr int MemoryPosY = 19;
 
 int focusedMemoryArea = -1;
 
+long long instructions = 0;
+long long startTime;
+
 void PrintString(
         SDL_Renderer *renderer,
         int x,
@@ -80,6 +83,18 @@ void DrawMask(SDL_Renderer *renderer) {
 std::string toHex(int num) {
     char str[32];
     sprintf(str, "%02X", num);
+    return std::string(str);
+}
+
+std::string toHex4(int num) {
+    char str[32];
+    sprintf(str, "%04X", num);
+    return std::string(str);
+}
+
+std::string toHexSingle(int num) {
+    char str[32];
+    sprintf(str, "%01X", num);
     return std::string(str);
 }
 
@@ -182,8 +197,37 @@ void MousePress(SDL_Renderer *renderer, SDL_MouseButtonEvent &b) {
     }
 }
 
-void DrawRegisters(SDL_Renderer* renderer, NosferatuEmulator* emu) {
-    // todo
+void DrawRegisters(SDL_Renderer *renderer, NosferatuEmulator *emu) {
+    int w = 104;
+    int h = 32;
+
+    constexpr int RegisterAreaX = 850;
+
+    PrintString(renderer, RegisterAreaX, 2, "Registers");
+    DrawAreaBorder(renderer, RegisterAreaX, 19, 415, 300);
+
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            DrawAreaBorder(
+                    renderer,
+                    RegisterAreaX + j * w + 5,
+                    25 + i * h * 2,
+                    w - 10,
+                    h
+            );
+            PrintString(renderer, RegisterAreaX + j * w + 15, 60 + (i) * h * 2, toHexSingle(i * 4 + j), 18);
+            PrintString(renderer, RegisterAreaX + j * w + 15, 35 + (i) * h * 2, toHex4(emu->getRegUnsigned(i * 4 + j)), 14);
+        }
+    }
+}
+
+void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
+    PrintString(renderer, 850, 330, "Performance");
+    DrawAreaBorder(renderer, 850, 350, 415, 180);
+
+    auto duration = clock() - startTime;
+    PrintString(renderer, 855, 360, "Instructions per second: " + std::to_string(instructions / duration), 12);
 }
 
 int main(int argc, char *argv[]) {
@@ -197,7 +241,7 @@ int main(int argc, char *argv[]) {
             "NOSferatu16",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            841,
+            1280,
             630,
             0
     );
@@ -209,6 +253,8 @@ int main(int argc, char *argv[]) {
 
     NosferatuEmulator emu;
 
+    startTime = clock();
+
     while (!quit) {
         //Handle events on queue
         while (SDL_PollEvent(&e) != 0) {
@@ -218,8 +264,6 @@ int main(int argc, char *argv[]) {
                     quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    //do whatever you want to do after a mouse button was pressed,
-                    // e.g.:
                     MousePress(renderer, e.button);
                     break;
             }
@@ -227,6 +271,7 @@ int main(int argc, char *argv[]) {
 
         try {
             emu.step();
+            ++instructions;
         } catch (const std::invalid_argument &ex) {
             std::cout << std::endl;
             std::cout << ex.what();
@@ -241,6 +286,7 @@ int main(int argc, char *argv[]) {
         // todo draw screen
         DrawMemoryMap(renderer, &emu);
         DrawRegisters(renderer, &emu);
+        DrawPerformance(renderer, &emu);
         SDL_RenderPresent(renderer);
     }
 

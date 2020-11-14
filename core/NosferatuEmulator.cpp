@@ -20,7 +20,6 @@ void NosferatuEmulator::step() {
     }
 
     const auto &i = codeMemory[PC];
-    std::cout << "PC=" << PC << ", " << std::endl;
     Operations::OpMap[i.op](i, this);
 
     ++ PC;
