@@ -27,6 +27,8 @@ private:
     long long cycles = 0;
 
     static s16 adjustSign(u16 value);
+
+    u16* getKeyboardMemory();
 public:
     NosferatuEmulator();
 
@@ -50,7 +52,6 @@ public:
 
     const u16* getVideoMemory() const;
     const u16* getKeyboardMemory() const;
-    u16* getKeyboardMemory();
 
     u16 getPC() const;
     void setPC(u16 value);
