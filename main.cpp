@@ -143,7 +143,6 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
             SDL_RenderDrawPoint(renderer, ScreenPosX + j, ScreenPosY + i);
         }
     }
-    std::cout<<wordIndex;
 }
 
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
