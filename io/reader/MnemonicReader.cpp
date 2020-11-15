@@ -33,7 +33,7 @@ u16 MnemonicReader::nextWord() {
     std::string *tokens[] = {&opcode, &dest, &opA, &opB};
 
     Instruction instruction(0);
-    InstructionMeta* currentMeta = nullptr;
+    const InstructionMeta* currentMeta = nullptr;
 
     for (int i = 0; i < 4; ++i) {
         if (!hasToken(line)) {
@@ -43,7 +43,7 @@ u16 MnemonicReader::nextWord() {
         *tokens[i] = nextToken(line);
 
         if (i == 0) {
-            currentMeta = lookupInstruction(tokens[i]);
+            currentMeta = lookupInstruction(*tokens[i]);
             if (!currentMeta) {
                 std::cerr << "Unknown instruction! " << tokens[i] << std::endl;
                 return -1;
@@ -52,6 +52,8 @@ u16 MnemonicReader::nextWord() {
 
         }
     }
+
+    return instruction.opcode();
 }
 
 void MnemonicReader::trim(std::string &str) {
@@ -75,4 +77,16 @@ void MnemonicReader::toUpper(std::string &str) {
     for (char &c : str) {
         c = std::toupper(c);
     }
+}
+
+bool MnemonicReader::hasToken(const std::string &line) const {
+    return false; // todo
+}
+
+std::string MnemonicReader::nextToken(std::string &line) const {
+    return std::__cxx11::string(); // todo
+}
+
+const InstructionMeta *MnemonicReader::lookupInstruction(const std::string &instruction) const {
+    return nullptr; // todo
 }

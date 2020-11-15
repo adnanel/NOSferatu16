@@ -4,7 +4,7 @@
 
 #include "ProgramReader.h"
 
-ProgramReader::ProgramReader(const std::istream &input) : input(input) {}
+ProgramReader::ProgramReader(std::istream &input) : input(input) {}
 
 ProgramReader::~ProgramReader() {
 

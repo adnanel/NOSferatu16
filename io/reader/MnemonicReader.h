@@ -35,6 +35,10 @@ class MnemonicReader : public ProgramReader {
 private:
     void trim(std::string& str);
     void toUpper(std::string& str);
+
+    bool hasToken(const std::string& line) const;
+    std::string nextToken(std::string& line) const;
+    const InstructionMeta* lookupInstruction(const std::string& instruction) const;
 public:
     u16 nextWord() override;
 };

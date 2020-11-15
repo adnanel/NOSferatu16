@@ -36,6 +36,9 @@ FrequencyCalculator frequencyCalculator(targetFrequency);
 
 FC_Font* fontCache[150] = {0};
 
+bool memoryViewEnabled = true;
+bool registerViewEnabled = true;
+
 std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime;
 std::chrono::time_point<std::chrono::high_resolution_clock> lastEmuTickTime;
 
@@ -75,14 +78,6 @@ inline void DrawFilledRect(SDL_Renderer *renderer, int x, int y, int w, int h, u
     };
     SDL_SetRenderDrawColor(renderer, r, g, b, 255);
     SDL_RenderFillRect(renderer, &rect);
-}
-
-inline void DrawMask(SDL_Renderer *renderer) {
-    DrawAreaBorder(renderer, ScreenPosX, ScreenPosY, ScreenWidth, ScreenHeight);
-    DrawAreaBorder(renderer, MemoryPosX, MemoryPosY, 512, 512);
-
-    PrintString(renderer, 0, 0, "Screen");
-    PrintString(renderer, 325, 0, "Memory map");
 }
 
 
@@ -130,6 +125,10 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     // the video memory will be inside the word range 0xC000 - 0xD900
     // (i.e. 6400 words = 6400 * 16 bits = 102400 bits for 320x320 = 102400 pixel)
 
+    DrawAreaBorder(renderer, ScreenPosX, ScreenPosY, ScreenWidth, ScreenHeight);
+    PrintString(renderer, 0, 0, "Screen");
+
+
     for (int i = 0; i < 320; ++ i) {
         for (int j = 0; j < 320; ++ j) {
             mask = mask >> 1u;
@@ -148,6 +147,10 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     int k = 0;
     auto mem = emu->getMemory();
+
+    PrintString(renderer, 325, 0, "Memory map");
+    DrawAreaBorder(renderer, MemoryPosX, MemoryPosY, 512, 512);
+
     for (int i = 0; i < 256; ++i) {
         for (int j = 0; j < 256; ++j) {
             u16 rgb = mem[k];
@@ -230,6 +233,12 @@ void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulato
     switch (event.keysym.scancode) {
         case SDL_SCANCODE_F12:
             frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
+            break;
+        case SDL_SCANCODE_F11:
+            memoryViewEnabled = !memoryViewEnabled;
+            break;
+        case SDL_SCANCODE_F10:
+            registerViewEnabled = !registerViewEnabled;
             break;
     }
 
@@ -320,6 +329,8 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     PrintString(renderer, 855, 405, "Cached instructions: " + std::to_string(emu->getCachedInstructionCount()), 13);
 
 
+    PrintString(renderer, 855, 480, "[F10]: Toggle register view", 13);
+    PrintString(renderer, 855, 495, "[F11]: Toggle memory view", 13);
     PrintString(renderer, 855, 510, "[F12]: Toggle frequency limiter", 13);
 }
 
@@ -389,10 +400,13 @@ int main(int argc, char *argv[]) {
                 }
 
                 ClearScreen(renderer);
-                DrawMask(renderer);
                 DrawScreen(renderer, &emu);
-                DrawMemoryMap(renderer, &emu);
-                DrawRegisters(renderer, &emu);
+                if (memoryViewEnabled) {
+                    DrawMemoryMap(renderer, &emu);
+                }
+                if (registerViewEnabled) {
+                    DrawRegisters(renderer, &emu);
+                }
                 DrawPerformance(renderer, &emu);
                 SDL_RenderPresent(renderer);
             }

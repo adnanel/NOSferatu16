@@ -11,10 +11,10 @@
 
 class ProgramReader {
 protected:
-    std::istream input;
+    std::istream& input;
 
 public:
-    explicit ProgramReader(const std::istream &input);
+    explicit ProgramReader(std::istream &input);
     virtual ~ProgramReader();
 
     virtual u16 nextWord() = 0;
