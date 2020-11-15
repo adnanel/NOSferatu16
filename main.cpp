@@ -221,8 +221,17 @@ void ClearScreen(SDL_Renderer *renderer) {
     SDL_RenderClear(renderer);
 }
 
+void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulator* emu) {
+    switch (event.keysym.scancode) {
+        case SDL_SCANCODE_F12:
+            frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
+            break;
+    }
 
-void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event) {
+
+}
+
+void KeyRelease(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulator* emu) {
     switch (event.keysym.scancode) {
         case SDL_SCANCODE_F12:
             frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
@@ -364,7 +373,10 @@ int main(int argc, char *argv[]) {
                             MousePress(renderer, e.button);
                             break;
                         case SDL_KEYUP:
-                            KeyPress(renderer, e.key);
+                            KeyRelease(renderer, e.key, &emu);
+                            break;
+                        case SDL_KEYDOWN:
+                            KeyPress(renderer, e.key, &emu);
                             break;
                     }
                 }
