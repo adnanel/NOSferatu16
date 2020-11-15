@@ -7,7 +7,7 @@
 #include "Operations.h"
 
 NosferatuEmulator::NosferatuEmulator() : PC(regs[15]) {
-    memory[0xEEFF] = 0xEEFF;
+
 }
 
 const u16 *NosferatuEmulator::getMemory() const {
@@ -15,13 +15,8 @@ const u16 *NosferatuEmulator::getMemory() const {
 }
 
 void NosferatuEmulator::step() {
-    if (PC >= CodeSize) {
-        // todo temp
-        return;
-    }
-
-    const auto &i = codeMemory[PC];
-    Operations::OpMap[i.op](i, this);
+    const auto &i = readInstruction(PC);
+    Operations::OpMap[i->op](*i, this);
 
     ++ PC;
     ++ this->cycles;
@@ -70,7 +65,12 @@ void NosferatuEmulator::setMemoryValueUnsigned(u16 address, u16 value) {
         return;
     }
 
-    memory[address & Mask16] = value & Mask16;
+    memory[address] = value & Mask16;
+    if (codeMemory[address]) {
+        delete codeMemory[address];
+        --cachedInstructionCount;
+        codeMemory[address] = nullptr;
+    }
 }
 
 s16 NosferatuEmulator::getMemoryValueSigned(u16 address) const {
@@ -96,4 +96,20 @@ void NosferatuEmulator::setMemoryValueSigned(u16 address, s16 value) {
 
 long long int NosferatuEmulator::getCycles() const {
     return cycles;
+}
+
+const u16 *NosferatuEmulator::getVideoMemory() const {
+    return memory + 0xC000;
+}
+
+const Instruction* NosferatuEmulator::readInstruction(u16 address) {
+    if (codeMemory[address]) {
+        return codeMemory[address];
+    }
+    ++cachedInstructionCount;
+    return codeMemory[address] = new Instruction(getMemoryValueUnsigned(address));
+}
+
+unsigned long NosferatuEmulator::getCachedInstructionCount() const {
+    return cachedInstructionCount;
 }

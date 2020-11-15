@@ -15,17 +15,16 @@ constexpr int RegCount = 16;
 
 class NosferatuEmulator {
 private:
+
+    Instruction* codeMemory[MemSize] = { nullptr };
+    unsigned long cachedInstructionCount = 0;
+
     u16 memory[MemSize] = {0};
     u16 regs[RegCount] = {0};
 
     u16& PC;
 
     long long cycles = 0;
-
-    Instruction codeMemory[CodeSize] = {
-            0b1001000011111111, // 0101 0101
-            0b1000000000000000,
-    };
 
     static s16 adjustSign(u16 value);
 public:
@@ -49,9 +48,14 @@ public:
     s16 getMemoryValueSigned(u16 address) const;
     void setMemoryValueSigned(u16 address, s16 value);
 
+    const u16* getVideoMemory() const;
 
     u16 getPC() const;
     void setPC(u16 value);
+
+    const Instruction* readInstruction(u16 address);
+
+    unsigned long getCachedInstructionCount() const;
 };
 
 

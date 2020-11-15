@@ -24,7 +24,6 @@ OperationImplementation Operations::OpMap[16] = {
         Operations::op0xF};
 
 void Operations::op0x0(const Instruction &instruction, NosferatuEmulator *emu) {
-    // todo provjeriti sa profesorom, ignorise se R1?
     emu->setRegUnsigned(instruction.dest, emu->getMemoryValueUnsigned(emu->getRegUnsigned(instruction.opB)));
 }
 

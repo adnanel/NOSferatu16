@@ -117,6 +117,30 @@ inline std::string& toHexSingle(int num) {
     return hex1cache[num] = std::string(str);
 }
 
+void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
+    auto vmem = emu->getVideoMemory();
+    u16 cword;
+    u16 mask = 0;
+    u16 wordIndex = 0;
+    // word in memory   0x0405
+    // word in memory   |0|0|0|0|0|1|0|0|0|0|0|0|0|1|0|1|
+    // pixels on screen | | | | | |X| | | | | | | |X| |X|
+
+    for (int i = 0; i < 320; ++ i) {
+        for (int j = 0; j < 320; ++ j) {
+            mask = mask >> 1u;
+            if (mask == 0) {
+                cword = vmem[wordIndex++];
+                mask = 0x8000;
+            }
+
+            auto val = cword & mask ? 255 : 0;
+            SDL_SetRenderDrawColor(renderer, val, val, val, 255);
+            SDL_RenderDrawPoint(renderer, ScreenPosX + j, ScreenPosY + i);
+        }
+    }
+}
+
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     int k = 0;
     for (int i = 0; i < 256; ++i) {
@@ -277,7 +301,10 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 
     PrintString(renderer, 855, 375, "Target frequency: " + std::to_string(freq) + unit, 13);
     PrintString(renderer, 855, 390, "Real frequency: " + std::to_string(realFreq) + realUnit, 13);
-    PrintString(renderer, 855, 425, "[F12]: Toggle frequency limiter", 13);
+    PrintString(renderer, 855, 405, "Cached instructions: " + std::to_string(emu->getCachedInstructionCount()), 13);
+
+
+    PrintString(renderer, 855, 510, "[F12]: Toggle frequency limiter", 13);
 }
 
 int main(int argc, char *argv[]) {
@@ -344,7 +371,7 @@ int main(int argc, char *argv[]) {
 
                 ClearScreen(renderer);
                 DrawMask(renderer);
-                // todo draw screen
+                DrawScreen(renderer, &emu);
                 DrawMemoryMap(renderer, &emu);
                 DrawRegisters(renderer, &emu);
                 DrawPerformance(renderer, &emu);
