@@ -51,26 +51,31 @@ void Operations::op0x6(const Instruction &instruction, NosferatuEmulator *emu) {
     u16 r3 = emu->getRegUnsigned(instruction.opB);
     u16 r2 = emu->getRegUnsigned(instruction.opA);
 
-    // emu->setRegUnsigned(instruction.dest, ???);
 
     u4 shift = r3 & 0b1111;
     u4 mode = (r3 & 0b110000) >> 4;
 
-    // todo pitati za pojedinacne modes
+    u16 result;
+
     switch (mode) {
         case 0:
-            // todo src1 >>> shift
+            result = (r2 >> shift) & ~(((0x1u << 16u) >> shift) << 1u);
             break;
         case 1:
-            // todo
+            result = r2 >> shift;
             break;
         case 2:
-            // todo
+            result = r2 << shift;
             break;
         case 3:
-            // todo
+            // rotate left
+            u16 rotated = r2 >> (16 - shift);
+            result = r2 << shift;
+            result |= rotated;
             break;
     }
+
+    emu->setRegUnsigned(instruction.dest, result);
 }
 
 void Operations::op0x7(const Instruction &instruction, NosferatuEmulator *emu) {

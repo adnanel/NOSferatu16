@@ -6,8 +6,8 @@
 #include "SDL2/SDL.h"
 #include <SDL2/SDL_ttf.h>
 #include <map>
+#include <fstream>
 
-#include "Config.h"
 #include "core/NosferatuEmulator.h"
 #include "core/FrequencyCalculator.h"
 #include "util/SDL_FontCache.h"
@@ -375,9 +375,6 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 }
 
 int main(int argc, char *argv[]) {
-    // init emu
-    Config config;
-
     lastDrawTime = std::chrono::high_resolution_clock::now();
 
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO);
