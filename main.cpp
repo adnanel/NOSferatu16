@@ -49,7 +49,7 @@ enum ExecutionMode {
     Step
 };
 
-ExecutionMode executionMode = ExecutionMode::Normal;
+ExecutionMode executionMode = ExecutionMode::Step;
 bool stepPending = false;
 
 inline std::string toString(ExecutionMode mode) {
