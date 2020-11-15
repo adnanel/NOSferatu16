@@ -126,6 +126,10 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     // word in memory   |0|0|0|0|0|1|0|0|0|0|0|0|0|1|0|1|
     // pixels on screen | | | | | |X| | | | | | | |X| |X|
 
+    // since we have a 320x320 screen, where 1 bit is 1 monochromatic pixel
+    // the video memory will be inside the word range 0xC000 - 0xD900
+    // (i.e. 6400 words = 6400 * 16 bits = 102400 bits for 320x320 = 102400 pixel)
+
     for (int i = 0; i < 320; ++ i) {
         for (int j = 0; j < 320; ++ j) {
             mask = mask >> 1u;
@@ -139,6 +143,7 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
             SDL_RenderDrawPoint(renderer, ScreenPosX + j, ScreenPosY + i);
         }
     }
+    std::cout<<wordIndex;
 }
 
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
