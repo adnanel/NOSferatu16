@@ -44,6 +44,24 @@ bool registerViewEnabled = true;
 std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime;
 std::chrono::time_point<std::chrono::high_resolution_clock> lastEmuTickTime;
 
+enum ExecutionMode {
+    Normal,
+    Step
+};
+
+ExecutionMode executionMode = ExecutionMode::Normal;
+bool stepPending = false;
+
+inline std::string toString(ExecutionMode mode) {
+    switch (mode) {
+        case Normal:
+            return "Normal";
+        case Step:
+            return "Step";
+    }
+    return "??";
+}
+
 inline void PrintString(
         SDL_Renderer *renderer,
         int x,
@@ -233,6 +251,21 @@ void ClearScreen(SDL_Renderer *renderer) {
 
 void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulator* emu) {
     switch (event.keysym.scancode) {
+        case SDL_SCANCODE_F7:
+            switch (executionMode) {
+                case Normal:
+                    executionMode = ExecutionMode::Step;
+                    stepPending = false;
+                    break;
+                case Step:
+                    executionMode = ExecutionMode::Normal;
+                    break;
+            }
+            frequencyCalculator.reset();
+            break;
+        case SDL_SCANCODE_F8:
+            stepPending = true;
+            break;
         case SDL_SCANCODE_F12:
             frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
             break;
@@ -331,6 +364,11 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     PrintString(renderer, 855, 405, "Cached instructions: " + std::to_string(emu->getCachedInstructionCount()), 13);
 
 
+    PrintString(renderer, 855, 450, std::string("[F7]: Toggle execution mode (current mode: ") + toString(executionMode) + ")", 13);
+    if (executionMode == ExecutionMode::Step) {
+        PrintString(renderer, 855, 465, "[F8]: Perform step", 13);
+    }
+
     PrintString(renderer, 855, 480, "[F10]: Toggle register view", 13);
     PrintString(renderer, 855, 495, "[F11]: Toggle memory view", 13);
     PrintString(renderer, 855, 510, "[F12]: Toggle frequency limiter", 13);
@@ -374,10 +412,14 @@ int main(int argc, char *argv[]) {
             // std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
             lastEmuTickTime = now;
 
-            if (frequencyCalculator.shouldTick()) {
+            if (
+                    (frequencyCalculator.shouldTick() && executionMode == ExecutionMode::Normal) ||
+                    (executionMode == ExecutionMode::Step && stepPending)
+            ) {
                 emu.step();
                 ++instructions;
                 frequencyCalculator.addCycle();
+                stepPending = false;
             }
         }
 

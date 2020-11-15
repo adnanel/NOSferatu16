@@ -32,10 +32,14 @@ public:
         return frequencyLocked;
     }
 
-    inline void setFrequencyLocked(bool frequencyLocked) {
-        FrequencyCalculator::frequencyLocked = frequencyLocked;
+    inline void reset() {
         this->cycles = 0;
         startTime = std::chrono::high_resolution_clock::now();
+    }
+
+    inline void setFrequencyLocked(bool frequencyLocked) {
+        FrequencyCalculator::frequencyLocked = frequencyLocked;
+        reset();
     }
 
     inline void addCycle() {
