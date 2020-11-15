@@ -10,6 +10,9 @@
 
 class BinaryReader : public ProgramReader {
 public:
+    BinaryReader(std::istream &input);
+
+public:
     u16 nextWord() override;
 };
 

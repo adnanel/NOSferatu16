@@ -7,6 +7,7 @@
 
 #include "../types.h"
 #include "Instruction.h"
+#include "../io/reader/ProgramReader.h"
 
 constexpr int MemSize = 65536;
 constexpr int CodeSize = 2;
@@ -62,6 +63,9 @@ public:
 
     void KeyRelease(unsigned int bitoffset);
     void KeyPress(unsigned int bitoffset);
+
+
+    void loadProgram(ProgramReader* programReader);
 };
 
 

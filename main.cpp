@@ -11,6 +11,8 @@
 #include "core/NosferatuEmulator.h"
 #include "core/FrequencyCalculator.h"
 #include "util/SDL_FontCache.h"
+#include "io/reader/MnemonicReader.h"
+#include "io/converter/ProgramConverter.h"
 
 constexpr int ScreenPosX = 1;
 constexpr int ScreenPosY = 19;
@@ -358,6 +360,12 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
 
     NosferatuEmulator emu;
+
+    auto txtProgram = std::ifstream("programs/example.txt");
+    ProgramReader* reader = new MnemonicReader(txtProgram);
+
+
+    emu.loadProgram(reader);
 
     while (!quit) {
         auto now = std::chrono::high_resolution_clock::now();

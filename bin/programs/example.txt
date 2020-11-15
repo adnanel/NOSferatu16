@@ -1,0 +1,22 @@
+# registri su 0-indexed
+
+# R0 = 0xFF (hexadecimalni zapis za 255)
+LDC 0 0xFF
+
+# R14 = 2 (dekadni zapis)
+LDC 14 2
+
+# R10 = 5 (hexa zapis registra)
+LDC 0xA 5
+
+# R10 = R10 * R14
+MUL 0xA 0xA 0xE
+
+# R2 = 1
+LDC 2 1
+
+# R0 = R0 + R2
+ADD 0 0 2
+
+# bezuslovni skok na prethodnu adresu, odnosno PC = PC - R14
+SUB 15 15 14

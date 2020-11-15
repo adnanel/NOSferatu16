@@ -15,3 +15,5 @@ u16 BinaryReader::nextWord() {
 
     return result;
 }
+
+BinaryReader::BinaryReader(std::istream &input) : ProgramReader(input) {}

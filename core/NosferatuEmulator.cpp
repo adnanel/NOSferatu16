@@ -17,8 +17,8 @@ void NosferatuEmulator::step() {
     const auto &i = readInstruction(PC);
     Operations::OpMap[i->op](*i, this);
 
-    ++ PC;
-    ++ this->cycles;
+    ++PC;
+    ++this->cycles;
 }
 
 u16 NosferatuEmulator::getRegUnsigned(u4 address) const {
@@ -60,7 +60,7 @@ u16 NosferatuEmulator::getMemoryValueUnsigned(u16 address) const {
 void NosferatuEmulator::setMemoryValueUnsigned(u16 address, u16 value) {
     address &= Mask16;
     if (address < 0x1000) {
-        std::cout<<"Write to ROM attempted!" << address << " = " << value << ". Ignoring... " << std::endl;
+        std::cout << "Write to ROM attempted!" << address << " = " << value << ". Ignoring... " << std::endl;
         return;
     }
 
@@ -101,7 +101,7 @@ const u16 *NosferatuEmulator::getVideoMemory() const {
     return memory + 0xC000;
 }
 
-const Instruction* NosferatuEmulator::readInstruction(u16 address) {
+const Instruction *NosferatuEmulator::readInstruction(u16 address) {
     if (codeMemory[address]) {
         return codeMemory[address];
     }
@@ -118,7 +118,7 @@ void NosferatuEmulator::KeyRelease(unsigned int bitoffset) {
     unsigned int bitOffsetInWord = bitoffset % 16;
     auto km = getKeyboardMemory();
 
-    u16& word = km[wordOffset];
+    u16 &word = km[wordOffset];
     u16 mask = 1u << bitOffsetInWord;
 
     word ^= mask;
@@ -136,7 +136,7 @@ void NosferatuEmulator::KeyPress(unsigned int bitoffset) {
     unsigned int bitOffsetInWord = bitoffset % 16;
     auto km = getKeyboardMemory();
 
-    u16& word = km[wordOffset];
+    u16 &word = km[wordOffset];
     u16 mask = 1u << bitOffsetInWord;
 
     word |= mask;
@@ -150,4 +150,15 @@ const u16 *NosferatuEmulator::getKeyboardMemory() const {
 
 u16 *NosferatuEmulator::getKeyboardMemory() {
     return memory + 0xFFF2;
+}
+
+void NosferatuEmulator::loadProgram(ProgramReader *programReader) {
+    int i;
+    for (i = 0; i < 0x1000; ++i) {
+        if (!*programReader) {
+            return;
+        }
+        memory[i] = programReader->nextWord();
+    }
+    std::cout << "Read " << i << " opcodes.";
 }
