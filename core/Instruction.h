@@ -15,6 +15,8 @@ struct Instruction {
     u4 opB;
 
     Instruction(u16 opcode);
+
+    u16 opcode() const;
 };
 
 

@@ -6,8 +6,11 @@
 #define NOSFERATU16_BINARYREADER_H
 
 
-class BinaryReader {
+#include "ProgramReader.h"
 
+class BinaryReader : public ProgramReader {
+public:
+    u16 nextWord() override;
 };
 
 

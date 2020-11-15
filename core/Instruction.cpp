@@ -12,3 +12,17 @@ Instruction::Instruction(u16 opcode) {
     opA = (opcode >> 4) & Mask4;
     opB = opcode & Mask4;
 }
+
+u16 Instruction::opcode() const {
+    u16 result = op & Mask4;
+    result <<= 4u;
+    result |= dest & Mask4;
+
+    result <<= 4u;
+    result |= opA & Mask4;
+
+    result <<= 4u;
+    result |= opB & Mask4;
+
+    return result;
+}
