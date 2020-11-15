@@ -192,6 +192,16 @@ void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
         x -= MemoryZoomHalfWidth;
         y -= MemoryZoomHalfHeight;
 
+
+        // draw magnifier
+        DrawAreaBorder(renderer, MemoryPosX + x * 2, MemoryPosY + y * 2, MemoryZoomWidth * 2, MemoryZoomHeight * 2);
+
+        auto lx = MemoryPosX + x * 2 + MemoryZoomWidth;
+        auto ly = MemoryPosY + y * 2 + MemoryZoomHeight * 2;
+        SDL_RenderDrawLine(renderer, lx, ly, lx, 580);
+        SDL_RenderDrawLine(renderer, lx, 580, 307, 580);
+
+
         PrintString(
                 renderer,
                 22,
