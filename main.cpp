@@ -228,7 +228,7 @@ void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulato
             break;
     }
 
-
+    emu->KeyPress(event.keysym.scancode);
 }
 
 void KeyRelease(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulator* emu) {
@@ -237,6 +237,8 @@ void KeyRelease(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmula
             frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
             break;
     }
+
+    emu->KeyRelease(event.keysym.scancode);
 }
 
 void MousePress(SDL_Renderer *renderer, SDL_MouseButtonEvent &b) {

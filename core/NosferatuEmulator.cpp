@@ -7,7 +7,6 @@
 #include "Operations.h"
 
 NosferatuEmulator::NosferatuEmulator() : PC(regs[15]) {
-
 }
 
 const u16 *NosferatuEmulator::getMemory() const {
@@ -112,4 +111,43 @@ const Instruction* NosferatuEmulator::readInstruction(u16 address) {
 
 unsigned long NosferatuEmulator::getCachedInstructionCount() const {
     return cachedInstructionCount;
+}
+
+void NosferatuEmulator::KeyRelease(unsigned int bitoffset) {
+    unsigned int wordOffset = bitoffset / 16;
+    unsigned int bitOffsetInWord = bitoffset % 16;
+    auto km = getKeyboardMemory();
+
+    u16& word = km[wordOffset];
+    u16 mask = 1u << bitOffsetInWord;
+
+    word ^= mask;
+
+    std::cout<<"resetting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
+}
+
+void NosferatuEmulator::KeyPress(unsigned int bitoffset) {
+    if (bitoffset >= 80) {
+        // keyboard keys are mapped from 0xFFF2 to 0xFFF7, which is 5 * 16 = 80 bits
+        return;
+    }
+
+    unsigned int wordOffset = bitoffset / 16;
+    unsigned int bitOffsetInWord = bitoffset % 16;
+    auto km = getKeyboardMemory();
+
+    u16& word = km[wordOffset];
+    u16 mask = 1u << bitOffsetInWord;
+
+    word |= mask;
+
+    std::cout<<"setting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
+}
+
+const u16 *NosferatuEmulator::getKeyboardMemory() const {
+    return memory + 0xFFF2;
+}
+
+u16 *NosferatuEmulator::getKeyboardMemory() {
+    return memory + 0xFFF2;
 }

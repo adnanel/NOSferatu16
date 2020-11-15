@@ -49,6 +49,8 @@ public:
     void setMemoryValueSigned(u16 address, s16 value);
 
     const u16* getVideoMemory() const;
+    const u16* getKeyboardMemory() const;
+    u16* getKeyboardMemory();
 
     u16 getPC() const;
     void setPC(u16 value);
@@ -56,6 +58,9 @@ public:
     const Instruction* readInstruction(u16 address);
 
     unsigned long getCachedInstructionCount() const;
+
+    void KeyRelease(unsigned int bitoffset);
+    void KeyPress(unsigned int bitoffset);
 };
 
 
