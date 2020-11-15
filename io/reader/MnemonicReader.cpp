@@ -80,13 +80,31 @@ void MnemonicReader::toUpper(std::string &str) {
 }
 
 bool MnemonicReader::hasToken(const std::string &line) const {
-    return false; // todo
+    return !line.empty() && std::isalpha(line[0]);
 }
 
-std::string MnemonicReader::nextToken(std::string &line) const {
-    return std::__cxx11::string(); // todo
+std::string MnemonicReader::nextToken(std::string &line) {
+    std::string token;
+    seekToNextToken(line);
+    while (!line.empty() && std::isalpha(line[0])) {
+        token += line[0];
+
+    }
+    seekToNextToken(line);
+    return token;
 }
 
 const InstructionMeta *MnemonicReader::lookupInstruction(const std::string &instruction) const {
-    return nullptr; // todo
+    for (const auto & curr : mnemonics) {
+        if (curr.mnemonic == instruction) {
+            return &curr;
+        }
+    }
+    return nullptr;
+}
+
+void MnemonicReader::seekToNextToken(std::string &line) {
+    while (!line.empty() && !std::isalpha(line[0])) {
+        line.erase(0);
+    }
 }
