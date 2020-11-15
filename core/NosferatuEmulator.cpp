@@ -54,6 +54,10 @@ void NosferatuEmulator::setPC(u16 value) {
 }
 
 u16 NosferatuEmulator::getMemoryValueUnsigned(u16 address) const {
+    if (address >= 0xFFFFU) {
+        std::cout << "Reading address out of bounds! " << address << std::endl;
+        return 0;
+    }
     return memory[address & Mask16] & Mask16;
 }
 
@@ -102,6 +106,7 @@ const u16 *NosferatuEmulator::getVideoMemory() const {
 }
 
 const Instruction *NosferatuEmulator::readInstruction(u16 address) {
+    address &= Mask16;
     if (codeMemory[address]) {
         return codeMemory[address];
     }

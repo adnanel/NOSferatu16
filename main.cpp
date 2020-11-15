@@ -331,6 +331,29 @@ void DrawRegisters(SDL_Renderer *renderer, NosferatuEmulator *emu) {
             PrintString(renderer, RegisterAreaX + j * w + 15, 35 + (i) * h * 2, toHex4(emu->getRegUnsigned(i * 4 + j)), 14);
         }
     }
+
+    PrintString(renderer, RegisterAreaX + 20, 285 - 16, "Next instruction", 14);
+    DrawAreaBorder(renderer, RegisterAreaX + 20, 285, 415 - 40, 30);
+
+    auto nextInstruction = emu->getMemoryValueUnsigned(emu->getRegUnsigned(0xFF));
+    constexpr int buffSize = 32;
+    char buff[buffSize];
+    int i = buffSize - 1;
+    buff[i--] = 0;
+    int cnt = 0;
+    while (nextInstruction) {
+        if (cnt == 4 || cnt == 8 || cnt == 12) {
+            buff[i--] = ' ';
+        }
+        buff[i--] = '0' + (nextInstruction % 2);
+        ++cnt;
+        nextInstruction >>= 1;
+    }
+    while (cnt < 16) {
+        buff[i--] = '0';
+        cnt++;
+    }
+    PrintString(renderer, RegisterAreaX + 40, 285,buff + i + 1, 31);
 }
 
 inline void adjustFreq(unsigned long& freq, std::string& unit) {

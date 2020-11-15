@@ -56,10 +56,12 @@ void Operations::op0x6(const Instruction &instruction, NosferatuEmulator *emu) {
     u4 mode = (r3 & 0b110000) >> 4;
 
     u16 result;
+    s16 r2Signed = r2;
 
     switch (mode) {
         case 0:
-            result = (r2 >> shift) & ~(((0x1u << 16u) >> shift) << 1u);
+            r2Signed >>= shift;
+            result = static_cast<u16>(r2Signed);
             break;
         case 1:
             result = r2 >> shift;
@@ -127,7 +129,9 @@ void Operations::op0xE(const Instruction &instruction, NosferatuEmulator *emu) {
 }
 
 void Operations::op0xF(const Instruction &instruction, NosferatuEmulator *emu) {
-    emu->setRegUnsigned(instruction.dest, emu->getRegUnsigned(instruction.opA));
-    emu->setPC(emu->getRegUnsigned(instruction.opB));
+    auto a = emu->getRegUnsigned(instruction.opA);
+    auto b = emu->getRegUnsigned(instruction.opB);
+    emu->setRegUnsigned(instruction.dest, a);
+    emu->setPC(b);
 }
 
