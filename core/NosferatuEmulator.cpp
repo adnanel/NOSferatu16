@@ -123,7 +123,7 @@ void NosferatuEmulator::KeyRelease(unsigned int bitoffset) {
 
     word ^= mask;
 
-    std::cout<<"resetting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
+    // std::cout<<"resetting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
 }
 
 void NosferatuEmulator::KeyPress(unsigned int bitoffset) {
@@ -141,7 +141,7 @@ void NosferatuEmulator::KeyPress(unsigned int bitoffset) {
 
     word |= mask;
 
-    std::cout<<"setting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
+    // std::cout<<"setting "<<wordOffset<<" "<<bitOffsetInWord<<std::endl;
 }
 
 const u16 *NosferatuEmulator::getKeyboardMemory() const {

@@ -143,12 +143,13 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
 
 void DrawMemoryMap(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     int k = 0;
+    auto mem = emu->getMemory();
     for (int i = 0; i < 256; ++i) {
         for (int j = 0; j < 256; ++j) {
-            u16 rgb = emu->getMemory()[k];
-            u16 r = rgb & 0xFF;
-            u16 g = rgb & 0xFF00;
-            u16 b = 0;
+            u16 rgb = mem[k];
+            u16 r = rgb & 0x00FF;
+            u16 g = rgb & 0x0F00;
+            u16 b = rgb & 0xF000;
 
             DrawAreaBorder(renderer, MemoryPosX + j * 2 + 1, MemoryPosY + i * 2 + 1, 0, 0, r, g, b);
 
