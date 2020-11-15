@@ -266,9 +266,6 @@ void KeyPress(SDL_Renderer *pRenderer, SDL_KeyboardEvent event, NosferatuEmulato
         case SDL_SCANCODE_F8:
             stepPending = true;
             break;
-        case SDL_SCANCODE_F12:
-            frequencyCalculator.setFrequencyLocked(!frequencyCalculator.isFrequencyLocked());
-            break;
         case SDL_SCANCODE_F11:
             memoryViewEnabled = !memoryViewEnabled;
             break;
