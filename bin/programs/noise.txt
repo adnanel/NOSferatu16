@@ -1,0 +1,48 @@
+# upisujemo 0xC000 u R0 (pocetak video memorije)
+LDC 0 0xC0
+LDC 1 0x28
+SHR 0 0 1
+
+# upisujemo 0xD900 u R1 (kraj video memorije)
+LDC 1 0xD9
+LDC 2 0x28
+SHR 1 1 2
+
+# upisujemo 0x20 (duzina jednog reda displeja) u R5
+LDC 5 0x20
+
+# skok ovdje, tijelo petlje
+LDC 4 0
+ADD 4 4 0
+# LDC 13 0x21
+MUL 4 4 9
+STO 4 4 0
+
+LDC 4 1
+ADD 9 9 4
+
+# povecaj R0 za 1
+LDC 4 1
+ADD 0 0 4
+
+# ukoliko je R0 < R1, skoci na PC = 7
+EQU 4 0 1
+ADD 15 15 4
+# uslov petlje ispunjen, skok na pocetak petlje
+LDC 15 0x6
+
+LDC 12 0xC0
+LDC 13 0x28
+SHR 12 12 13
+
+SUB 12 12 5
+
+LDC 13 2
+STO 12 13 12
+
+# uslov petlje nije ispunjen, vrati se na pocetak programa
+LDC 0x7 0
+LDC 0x8 1
+SUB 0x7 0x7 0x8
+
+MAJ 0xC 0x8 0x7

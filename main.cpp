@@ -426,7 +426,7 @@ int main(int argc, char *argv[]) {
 
     NosferatuEmulator emu;
 
-    auto txtProgram = std::ifstream("programs/example.txt");
+    auto txtProgram = std::ifstream("programs/program.txt");
     ProgramReader* reader = new MnemonicReader(txtProgram);
 
 
