@@ -409,7 +409,7 @@ int main(int argc, char *argv[]) {
     TTF_Init();
 
     SDL_Window *window = SDL_CreateWindow(
-            "NOSferatu16",
+            "NOSferatu16 1.0 © Adnan Elezović",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             1280,
@@ -480,9 +480,6 @@ int main(int argc, char *argv[]) {
                     DrawRegisters(renderer, &emu);
                 }
                 DrawPerformance(renderer, &emu);
-
-                // about
-                PrintString(renderer, 850, 540, "NOSferatu16 1.0 © Adnan Elezović", 24);
 
                 SDL_RenderPresent(renderer);
             }
