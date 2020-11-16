@@ -26,6 +26,7 @@ private:
     u16& PC;
 
     long long cycles = 0;
+    bool videoChanged = false;
 
     static s16 adjustSign(u16 value);
 
@@ -48,9 +49,6 @@ public:
     u16 getMemoryValueUnsigned(u16 address) const;
     void setMemoryValueUnsigned(u16 address, u16 value);
 
-    s16 getMemoryValueSigned(u16 address) const;
-    void setMemoryValueSigned(u16 address, s16 value);
-
     const u16* getVideoMemory() const;
     const u16* getKeyboardMemory() const;
 
@@ -66,6 +64,9 @@ public:
 
 
     void loadProgram(ProgramReader* programReader);
+
+    bool hasVideoChanged() const;
+    void resetVideoChanged();
 };
 
 

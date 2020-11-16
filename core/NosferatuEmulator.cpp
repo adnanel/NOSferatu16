@@ -74,12 +74,9 @@ void NosferatuEmulator::setMemoryValueUnsigned(u16 address, u16 value) {
         --cachedInstructionCount;
         codeMemory[address] = nullptr;
     }
-}
-
-s16 NosferatuEmulator::getMemoryValueSigned(u16 address) const {
-    address &= Mask16;
-    auto res = memory[address];
-    return adjustSign(res);
+    if (address >= 0xC000 && address < 0xD900) {
+        videoChanged = true;
+    }
 }
 
 s16 NosferatuEmulator::adjustSign(u16 value) {
@@ -88,13 +85,6 @@ s16 NosferatuEmulator::adjustSign(u16 value) {
 
     s16 res = sign ? -value : value;
     return res;
-}
-
-void NosferatuEmulator::setMemoryValueSigned(u16 address, s16 value) {
-    if (value < 0) {
-        value |= 0x8000;
-    }
-    memory[address & Mask16] = value & Mask16;
 }
 
 long long int NosferatuEmulator::getCycles() const {
@@ -166,4 +156,12 @@ void NosferatuEmulator::loadProgram(ProgramReader *programReader) {
         memory[i] = programReader->nextWord();
     }
     std::cout << "Read " << i << " opcodes.";
+}
+
+bool NosferatuEmulator::hasVideoChanged() const {
+    return videoChanged;
+}
+
+void NosferatuEmulator::resetVideoChanged() {
+    videoChanged = false;
 }
