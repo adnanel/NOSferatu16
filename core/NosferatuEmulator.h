@@ -26,7 +26,6 @@ private:
     u16& PC;
 
     long long cycles = 0;
-    bool videoChanged = false;
 
     static s16 adjustSign(u16 value);
 
@@ -64,9 +63,6 @@ public:
 
 
     void loadProgram(ProgramReader* programReader);
-
-    bool hasVideoChanged() const;
-    void resetVideoChanged();
 };
 
 

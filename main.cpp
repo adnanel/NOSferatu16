@@ -149,11 +149,6 @@ void DrawScreen(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     PrintString(renderer, 0, 0, "Screen");
 
 
-    if (!emu->hasVideoChanged()) {
-        return;
-    }
-    emu->resetVideoChanged();
-
     for (int i = 0; i < 320; ++ i) {
         for (int j = 0; j < 320; ++ j) {
             mask = mask >> 1u;
@@ -431,7 +426,7 @@ int main(int argc, char *argv[]) {
 
     NosferatuEmulator emu;
 
-    auto txtProgram = std::ifstream("programs/example.txt");
+    auto txtProgram = std::ifstream("programs/noise.txt");
     ProgramReader* reader = new MnemonicReader(txtProgram);
 
 

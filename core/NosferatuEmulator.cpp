@@ -74,9 +74,6 @@ void NosferatuEmulator::setMemoryValueUnsigned(u16 address, u16 value) {
         --cachedInstructionCount;
         codeMemory[address] = nullptr;
     }
-    if (address >= 0xC000 && address < 0xD900) {
-        videoChanged = true;
-    }
 }
 
 s16 NosferatuEmulator::adjustSign(u16 value) {
@@ -158,10 +155,3 @@ void NosferatuEmulator::loadProgram(ProgramReader *programReader) {
     std::cout << "Read " << i << " opcodes.";
 }
 
-bool NosferatuEmulator::hasVideoChanged() const {
-    return videoChanged;
-}
-
-void NosferatuEmulator::resetVideoChanged() {
-    videoChanged = false;
-}
