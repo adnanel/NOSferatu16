@@ -480,6 +480,10 @@ int main(int argc, char *argv[]) {
                     DrawRegisters(renderer, &emu);
                 }
                 DrawPerformance(renderer, &emu);
+
+                // about
+                PrintString(renderer, 850, 540, "NOSferatu16 1.0 © Adnan Elezović", 24);
+
                 SDL_RenderPresent(renderer);
             }
         }
