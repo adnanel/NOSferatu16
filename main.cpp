@@ -42,7 +42,6 @@ bool memoryViewEnabled = true;
 bool registerViewEnabled = true;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> lastDrawTime;
-std::chrono::time_point<std::chrono::high_resolution_clock> lastEmuTickTime;
 
 enum ExecutionMode {
     Normal,
@@ -436,9 +435,6 @@ int main(int argc, char *argv[]) {
         auto now = std::chrono::high_resolution_clock::now();
 
         { // the following should be executed with the target frequency
-            // std::cout<<delta<< " nanos have passed, refreshing screen " << targetNanosPerEmuTick << std::endl;
-            lastEmuTickTime = now;
-
             if (
                     (frequencyCalculator.shouldTick() && executionMode == ExecutionMode::Normal) ||
                     (executionMode == ExecutionMode::Step && stepPending)
