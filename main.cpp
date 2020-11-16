@@ -378,8 +378,6 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     PrintString(renderer, 850, 330, "Performance");
     DrawAreaBorder(renderer, 850, 350, 415, 180);
 
-    PrintString(renderer, 855, 360, "Instructions per second: ", 13);
-
     std::string unit;
     std::string realUnit;
     auto freq = targetFrequency;
@@ -388,9 +386,10 @@ void DrawPerformance(SDL_Renderer *renderer, NosferatuEmulator *emu) {
     adjustFreq(freq, unit);
     adjustFreq(realFreq, realUnit);
 
+    PrintString(renderer, 855, 360, "Cached instructions: " + std::to_string(emu->getCachedInstructionCount()), 13);
     PrintString(renderer, 855, 375, "Target frequency: " + std::to_string(freq) + unit, 13);
     PrintString(renderer, 855, 390, "Real frequency: " + std::to_string(realFreq) + realUnit, 13);
-    PrintString(renderer, 855, 405, "Cached instructions: " + std::to_string(emu->getCachedInstructionCount()), 13);
+
 
 
     PrintString(renderer, 855, 450, std::string("[F7]: Toggle execution mode (current mode: ") + toString(executionMode) + ")", 13);
